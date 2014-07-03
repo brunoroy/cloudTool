@@ -15,7 +15,7 @@ static char* filePLY = "";
 static OptionEntry entries[] =
 {
     { "rename", "r", OPTION_ARG_STRING, &renameFolder, "renames all files in a specific folder." },
-    { "convert", "c", OPTION_ARG_STRING, &filePLY, "converts binary PLY file to ASCII PLY file." }
+    { "convert", "c", OPTION_ARG_STRING, &filePLY, "converts binary PLY files to ASCII PLY file." }
 };
 
 void renameFiles(std::string folder)
@@ -52,19 +52,31 @@ void renameFiles(std::string folder)
     std::clog << fileSize << " files renamed." << std::endl;
 }
 
-void convertFile(std::string filePLY)
+void convertFile(std::string folder)
 {
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
-    //std::clog << "filePLY: " << filePLY << std::endl;
-    //int ioMessage = pcl::io::loadPLYFile(filePLY, cloud);
-    pcl::io::loadPLYFile(filePLY, *cloud);
+    boost::filesystem::path directory(folder);
+    boost::filesystem::directory_iterator it(directory), eod;
 
-    /*std::string newFilePLY(filePLY);
-    newFilePLY = newFilePLY.substr(0, newFilePLY.length()-4);
-    newFilePLY.append("_ASCII.ply");
-    pcl::io::savePLYFileASCII(newFilePLY, *cloud);
+    uint fileId = 0;
+    BOOST_FOREACH(boost::filesystem::path const &path, std::make_pair(it, eod))
+    {
+        if(boost::filesystem::is_regular_file(path))
+        {
+            std::string oldFilePLY = std::string(folder).append(path.filename().string());
+            std::clog << "converting " << oldFilePLY << " (" << fileId++ << ")." << std::endl;
 
-    std::clog << "file " << newFilePLY << " converted." << std::endl;*/
+            pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
+            pcl::io::loadPLYFile(oldFilePLY, *cloud);
+
+            std::string newFilePLY("output/");
+            newFilePLY.append(path.filename().string());
+            //newFilePLY = newFilePLY.substr(0, newFilePLY.length()-4);
+            //newFilePLY.append("_ASCII.ply");
+            pcl::io::savePLYFileASCII(newFilePLY, *cloud);
+
+            std::clog << "file " << newFilePLY << " converted." << std::endl;
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -74,7 +86,7 @@ int main(int argc, char *argv[])
     optionManager.reset(new OptionManager(argc, argv));
     optionManager->setOptionContext("Simple tool that implement various data operations.");
     optionManager->addUsage("-r <folder>");
-    optionManager->addUsage("-c <filename>");
+    optionManager->addUsage("-c <folder>");
     optionManager->addExample("-r clouds/");
     optionManager->addExample("-c file.ply");
     std::vector<OptionEntry> optionEntries(entries, entries + sizeof(entries)/sizeof(entries[0]));
