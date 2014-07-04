@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     optionManager->addUsage("-r <folder>");
     optionManager->addUsage("-c <folder>");
     optionManager->addExample("-r clouds/");
-    optionManager->addExample("-c file.ply");
+    optionManager->addExample("-c clouds/");
     std::vector<OptionEntry> optionEntries(entries, entries + sizeof(entries)/sizeof(entries[0]));
     optionManager->setOptionEntries(optionEntries);
 
